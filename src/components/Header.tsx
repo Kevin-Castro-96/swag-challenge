@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom'
+import { useCartContext } from '../context/CartContext'
 import './Header.css'
 
 const Header = () => {
+  const { cart, isLoading } = useCartContext() // 🔹 Agregamos isLoading
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0)
+
   return (
     <header className="header">
       <div className="container">
@@ -20,10 +24,14 @@ const Header = () => {
               <span className="material-icons">home</span>
               Catálogo
             </Link>
-            <button className="nav-link l1" onClick={() => alert('Función de carrito por implementar')}>
+
+            <Link to="/cart" className="nav-link l1 cart-link">
               <span className="material-icons">shopping_cart</span>
-              Carrito (0)
-            </button>
+              {/* 🔹 Solo mostrar badge cuando no esté cargando Y haya items */}
+              {!isLoading && totalItems > 0 && (
+                <span className="cart-badge">{totalItems}</span>
+              )}
+            </Link>
           </nav>
 
           {/* Actions */}

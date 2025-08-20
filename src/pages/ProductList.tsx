@@ -16,6 +16,8 @@ const ProductList = () => {
   const filterProducts = (category: string, search: string, sort: string) => {
     let filtered = [...allProducts];
 
+    
+
     // Sorting logic
     //aca soluciono filtro de precio
     switch (sort) {

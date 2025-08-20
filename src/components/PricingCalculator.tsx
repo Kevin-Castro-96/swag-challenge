@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Product } from '../types/Product'
 import './PricingCalculator.css'
+import { toast } from 'react-toastify'
+import { useCartContext } from '../context/CartContext'
 
 interface PricingCalculatorProps {
   product: Product
@@ -9,6 +11,21 @@ interface PricingCalculatorProps {
 const PricingCalculator = ({ product }: PricingCalculatorProps) => {
   const [quantity, setQuantity] = useState<number>(1)
   const [selectedBreak, setSelectedBreak] = useState<number>(0)
+  const { addToCart } = useCartContext();
+
+  const AgregarProducto = () => {
+       if (!product) return; // seguridad extra
+      console.log("agregado al carrito");
+      toast.success("Producto añadido al carrito");
+      
+      addToCart({
+        product,
+        quantity,
+        //selectedColor,
+        //selectedSize,
+      });
+      
+    };
 
   // Calculate best pricing for quantity
   const calculatePrice = (qty: number) => {
@@ -156,10 +173,7 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
           
           <button 
             className="btn btn-primary cta1"
-            onClick={() => {
-              // Add to cart functionality
-              alert('Función de agregar al carrito por implementar')
-            }}
+            onClick={AgregarProducto}
           >
             <span className="material-icons">shopping_cart</span>
             Agregar al carrito

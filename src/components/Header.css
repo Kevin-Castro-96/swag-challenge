@@ -109,3 +109,19 @@
     display: none;
   }
 }
+
+.cart-link {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: red;
+  color: white;
+  border-radius: 80%;
+  padding: .3em .6em;
+  font-size: 8px;
+  font-weight: bold;
+}
