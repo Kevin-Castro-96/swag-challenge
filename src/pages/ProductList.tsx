@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
 import ProductFilters from "../components/ProductFilters";
 import { products as allProducts } from "../data/products";
@@ -6,56 +6,50 @@ import { Product } from "../types/Product";
 import "./ProductList.css";
 
 const ProductList = () => {
-  const [filteredProducts, setFilteredProducts] =
-    useState<Product[]>(allProducts);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(allProducts);
+
+  // Estados de filtros
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]); // 👈 amplio por defecto
 
-  // Filter and sort products based on criteria
-  const filterProducts = (category: string, search: string, sort: string) => {
+  // 🔍 Función que aplica todos los filtros
+  const filterProducts = () => {
     let filtered = [...allProducts];
 
-    
-
-    // Sorting logic
-    //aca soluciono filtro de precio
-    switch (sort) {
-      case "name":
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "price":
-        filtered.sort((a, b) => a.basePrice - b.basePrice); // Menor a mayor
-        break;
-      case "stock":
-        filtered.sort((a, b) => b.stock - a.stock);
-        break;
-      default:
-        break;
+    // Categoría
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((p) => p.category === selectedCategory);
     }
 
-    // Category filter
-    if (category !== "all") {
-      filtered = filtered.filter((product) => product.category === category);
-    }
-
-    // Search filter
-    if (search) {
+    // Búsqueda
+    if (searchQuery) {
       filtered = filtered.filter(
-        (product) =>
-          //corrijo case-sensitive no importa si escribo en mayuscula o minuscula
-          product.name.toLowerCase().includes(search.toLowerCase()) ||
-          product.sku.toLowerCase().includes(search.toLowerCase())
+        (p) =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.sku.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Sorting logic
-    switch (sort) {
+    // Proveedor
+    if (selectedSupplier) {
+      filtered = filtered.filter((p) => p.supplier === selectedSupplier);
+    }
+
+    // Rango de precios
+    filtered = filtered.filter(
+      (p) => p.basePrice >= priceRange[0] && p.basePrice <= priceRange[1]
+    );
+
+    // Orden
+    switch (sortBy) {
       case "name":
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case "price":
-        // Price sorting to implement
+        filtered.sort((a, b) => a.basePrice - b.basePrice);
         break;
       case "stock":
         filtered.sort((a, b) => b.stock - a.stock);
@@ -67,25 +61,24 @@ const ProductList = () => {
     setFilteredProducts(filtered);
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    filterProducts(category, searchQuery, sortBy);
-  };
+  // 📌 Recalcular cada vez que cambien filtros
+  useEffect(() => {
+    filterProducts();
+  }, [selectedCategory, searchQuery, sortBy, selectedSupplier, priceRange]);
 
-  const handleSearchChange = (search: string) => {
-    setSearchQuery(search);
-    filterProducts(selectedCategory, search, sortBy);
-  };
-
-  const handleSortChange = (sort: string) => {
-    setSortBy(sort);
-    filterProducts(selectedCategory, searchQuery, sort);
+  // 🔄 Limpiar filtros
+  const handleClearFilters = () => {
+    setSelectedCategory("all");
+    setSearchQuery("");
+    setSortBy("name");
+    setSelectedSupplier("");
+    setPriceRange([0, 10000]); // 👈 reset
   };
 
   return (
     <div className="product-list-page">
       <div className="container">
-        {/* Page Header */}
+        {/* Header */}
         <div className="page-header">
           <div className="page-info">
             <h1 className="page-title h2">Catálogo de Productos</h1>
@@ -101,10 +94,6 @@ const ProductList = () => {
               </span>
               <span className="stat-label l1">productos</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-value p1-medium">6</span>
-              <span className="stat-label l1">categorías</span>
-            </div>
           </div>
         </div>
 
@@ -113,9 +102,14 @@ const ProductList = () => {
           selectedCategory={selectedCategory}
           searchQuery={searchQuery}
           sortBy={sortBy}
-          onCategoryChange={handleCategoryChange}
-          onSearchChange={handleSearchChange}
-          onSortChange={handleSortChange}
+          selectedSupplier={selectedSupplier}
+          priceRange={priceRange}
+          onCategoryChange={setSelectedCategory}
+          onSearchChange={setSearchQuery}
+          onSortChange={setSortBy}
+          onSupplierChange={setSelectedSupplier}
+          onPriceChange={setPriceRange}
+          onClearFilters={handleClearFilters}
         />
 
         {/* Products Grid */}
@@ -129,11 +123,7 @@ const ProductList = () => {
               </p>
               <button
                 className="btn btn-primary cta1"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                  filterProducts("all", "", sortBy);
-                }}
+                onClick={handleClearFilters}
               >
                 Ver todos los productos
               </button>
