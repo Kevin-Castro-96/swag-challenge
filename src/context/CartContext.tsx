@@ -10,7 +10,7 @@ type CartItem = {
 
 type CartContextType = {
   cart: CartItem[];
-  isLoading: boolean; // 🔹 Nuevo estado de carga
+  isLoading: boolean; 
   addToCart: (item: CartItem) => void;
   removeFromCart: (productId: number, selectedColor?: string, selectedSize?: string) => void;
   clearCart: () => void;
@@ -20,9 +20,9 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // 🔹 Estado inicial en true
+  const [isLoading, setIsLoading] = useState(true); 
 
-  // 🔹 Cargar carrito desde localStorage al montar
+  
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
@@ -33,10 +33,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         setCart([]);
       }
     }
-    setIsLoading(false); // 🔹 Marcar como cargado
+    setIsLoading(false); 
   }, []);
 
-  // 🔹 Guardar carrito en localStorage cada vez que cambie (solo si ya se cargó)
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem("cart", JSON.stringify(cart));

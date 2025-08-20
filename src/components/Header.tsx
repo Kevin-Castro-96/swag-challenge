@@ -3,7 +3,7 @@ import { useCartContext } from '../context/CartContext'
 import './Header.css'
 
 const Header = () => {
-  const { cart, isLoading } = useCartContext() // 🔹 Agregamos isLoading
+  const { cart } = useCartContext() 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
@@ -27,8 +27,7 @@ const Header = () => {
 
             <Link to="/cart" className="nav-link l1 cart-link">
               <span className="material-icons">shopping_cart</span>
-              {/* 🔹 Solo mostrar badge cuando no esté cargando Y haya items */}
-              {!isLoading && totalItems > 0 && (
+              {totalItems > 0 && (
                 <span className="cart-badge">{totalItems}</span>
               )}
             </Link>

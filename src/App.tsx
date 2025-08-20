@@ -13,9 +13,9 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<ProductList />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/product/:id" element={<ProductDetail/>} />
           <Route path="/cart" element={<CartPage/>} />
-           <Route path="/cotizacion" element={<QuotationPage />} />
+           <Route path="/cotizacion" element={<QuotationPage/>} />
         </Routes>
       </main>
     </div>

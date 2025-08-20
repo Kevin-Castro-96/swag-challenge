@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react' 
 import { Product } from '../types/Product'
 import './PricingCalculator.css'
 import { toast } from 'react-toastify'
 import { useCartContext } from '../context/CartContext'
+import { useNavigate } from 'react-router-dom'
 
 interface PricingCalculatorProps {
   product: Product
@@ -10,57 +11,70 @@ interface PricingCalculatorProps {
 
 const PricingCalculator = ({ product }: PricingCalculatorProps) => {
   const [quantity, setQuantity] = useState<number>(1)
-  const [selectedBreak, setSelectedBreak] = useState<number>(0)
+  const [selectedBreak, setSelectedBreak] = useState<number | null>(null)
   const { addToCart } = useCartContext();
+  const navigate = useNavigate();
 
   const AgregarProducto = () => {
-       if (!product) return; // seguridad extra
-      console.log("agregado al carrito");
-      toast.success("Producto añadido al carrito");
-      
-      addToCart({
+    if (!product) return;
+    toast.success("Producto añadido al carrito");
+    
+    addToCart({
+      product,
+      quantity,
+    });
+  };
+
+  const solicitarCotizacion = () => {
+    navigate('/cotizacion', {
+      state: {
         product,
         quantity,
-        //selectedColor,
-        //selectedSize,
-      });
-      
-    };
+      },
+    });
+  };
 
-  // Calculate best pricing for quantity
   const calculatePrice = (qty: number) => {
     if (!product.priceBreaks || product.priceBreaks.length === 0) {
-      return product.basePrice * qty
+      return product.basePrice * qty;
     }
 
-    // Find applicable price break
-    let applicableBreak = product.priceBreaks[0]
+    let bestPrice = product.basePrice;
+
     for (let i = 0; i < product.priceBreaks.length; i++) {
-      if (qty >= product.priceBreaks[i].minQty) {
-        applicableBreak = product.priceBreaks[i]
+      const breakItem = product.priceBreaks[i];
+      if (qty >= breakItem.minQty && breakItem.price < bestPrice) {
+        bestPrice = breakItem.price;
       }
     }
 
-    return applicableBreak.price * qty
+    return bestPrice * qty;
   }
 
-  // Calculate discount amount
   const getDiscount = (qty: number) => {
-    if (!product.priceBreaks || product.priceBreaks.length === 0) {
-      return 0
-    }
+    if (!product.priceBreaks || product.priceBreaks.length === 0) return 0
 
     const baseTotal = product.basePrice * qty
     const discountedTotal = calculatePrice(qty)
-    
-    // Calculate savings percentage
     return ((baseTotal - discountedTotal) / baseTotal) * 100
   }
 
-  // Format price display
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString()}` // Should be CLP formatting
-  }
+  const formatPrice = (price: number) => `$${price.toLocaleString()}`
+
+  useEffect(() => {
+    if (!product.priceBreaks) return;
+    let bestIndex: number | null = null;
+    let bestPrice = product.basePrice;
+
+    product.priceBreaks.forEach((breakItem, index) => {
+      if (quantity >= breakItem.minQty && breakItem.price < bestPrice) {
+        bestPrice = breakItem.price;
+        bestIndex = index;
+      }
+    });
+
+    setSelectedBreak(bestIndex);
+  }, [quantity, product.priceBreaks]);
 
   const currentPrice = calculatePrice(quantity)
   const discountPercent = getDiscount(quantity)
@@ -75,7 +89,6 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
       </div>
 
       <div className="calculator-content">
-        {/* Quantity Input */}
         <div className="quantity-section">
           <label className="quantity-label p1-medium">Cantidad</label>
           <div className="quantity-input-group">
@@ -91,7 +104,6 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
           </div>
         </div>
 
-        {/* Price Breaks */}
         {product.priceBreaks && product.priceBreaks.length > 0 && (
           <div className="price-breaks-section">
             <h4 className="breaks-title p1-medium">Descuentos por volumen</h4>
@@ -127,12 +139,11 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
           </div>
         )}
 
-        {/* Price Summary */}
         <div className="price-summary">
           <div className="summary-row">
             <span className="summary-label p1">Precio unitario:</span>
             <span className="summary-value p1-medium">
-              {formatPrice(calculatePrice(quantity) / quantity)}
+              {formatPrice(currentPrice / quantity)}
             </span>
           </div>
           
@@ -158,14 +169,10 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="calculator-actions">
           <button 
             className="btn btn-secondary cta1"
-            onClick={() => {
-              // Handle quote request
-              alert(`Cotización solicitada para ${quantity} unidades de ${product.name}`)
-            }}
+            onClick={solicitarCotizacion}
           >
             <span className="material-icons">email</span>
             Solicitar cotización oficial
@@ -180,7 +187,6 @@ const PricingCalculator = ({ product }: PricingCalculatorProps) => {
           </button>
         </div>
 
-        {/* Additional Info */}
         <div className="additional-info">
           <div className="info-item">
             <span className="material-icons">local_shipping</span>
